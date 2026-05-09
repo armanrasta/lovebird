@@ -1,0 +1,11 @@
+[package]
+name = "lovebird-honeypot"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Actix‑Web (or whatever server) will be needed. Patch it!
+actix-web = { git = "https://github.com/actix/actix-web" }
+# … etc.
+lovebird-common = { path = "../lovebird-common" }
+lovebird-engine = { path = "../lovebird-engine" }

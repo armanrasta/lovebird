@@ -1,0 +1,13 @@
+[package]
+name = "lovebird-server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+actix-web = { git = "https://github.com/actix/actix-web" }
+tokio = { git = "https://github.com/tokio-rs/tokio", features = ["full"] }
+# internal crates
+lovebird-common = { path = "../crates/lovebird-common" }
+lovebird-engine = { path = "../crates/lovebird-engine" }
+lovebird-ct = { path = "../crates/lovebird-ct" }
+lovebird-honeypot = { path = "../crates/lovebird-honeypot" }

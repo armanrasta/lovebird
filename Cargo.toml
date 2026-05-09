@@ -1,0 +1,32 @@
+[workspace]
+members = [
+    "crates/lovebird-common",
+    "crates/lovebird-engine",
+    "crates/lovebird-ct",
+    "crates/lovebird-honeypot",
+    "lovebird-server",
+]
+resolver = "2"
+
+[workspace.package]
+#name = "lovebird"
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+serde = { git = "https://github.com/serde-rs/serde", features = ["derive"] }
+serde_json = { git = "https://github.com/serde-rs/json", features = ["raw_value"] }
+tokio = { git = "https://github.com/tokio-rs/tokio" }
+
+[patch.crates-io]
+serde = { git = "https://github.com/serde-rs/serde", features = ["derive"] }
+serde_core = { git = "https://github.com/serde-rs/serde" }
+serde_derive = { git = "https://github.com/serde-rs/serde" }
+serde_json = { git = "https://github.com/serde-rs/json" }
+proc-macro2 = { git = "https://github.com/dtolnay/proc-macro2", branch = "master" }
+quote = { git = "https://github.com/dtolnay/quote", branch = "master" }
+syn = { git = "https://github.com/dtolnay/syn", branch = "master" }
+unicode-ident = { git = "https://github.com/dtolnay/unicode-ident", branch = "master" }
+pin-project-lite = { git = "https://github.com/taiki-e/pin-project-lite", branch = "main" }
+tokio = { git = "https://github.com/tokio-rs/tokio" }
+anyhow = { git = "https://github.com/dtolnay/anyhow" }

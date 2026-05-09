@@ -1,0 +1,11 @@
+[package]
+name = "lovebird-ct"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# needed for async CT log monitoring
+reqwest = { git = "https://github.com/seanmonstar/reqwest" }  # example
+tokio = { git = "https://github.com/tokio-rs/tokio", features = ["full"] }
+lovebird-common = { path = "../lovebird-common" }
+lovebird-engine = { path = "../lovebird-engine" }
