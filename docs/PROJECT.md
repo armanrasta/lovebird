@@ -23,6 +23,8 @@
 13. [Governance / Definition of Done](#13-governance--definition-of-done)
 14. [Open Questions](#14-open-questions)
 
+**Also see:** [`SYSTEM.md`](SYSTEM.md) (how the system fits together), [`CI.md`](CI.md) (multi-OS gates), [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) (dependency pins).
+
 ---
 
 ## 1. What Lovebird Is
