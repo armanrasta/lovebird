@@ -1,0 +1,16 @@
+[package]
+name = "lovebird-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "lovebird"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+lovebird-common = { path = "../crates/lovebird-common" }
+lovebird-engine = { path = "../crates/lovebird-engine" }

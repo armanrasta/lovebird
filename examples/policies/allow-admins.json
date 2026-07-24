@@ -1,0 +1,34 @@
+[
+  {
+    "id": "allow-admins",
+    "effect": "allow",
+    "description": "Allow principals with the admin role",
+    "priority": 10,
+    "actions": ["read", "write"],
+    "match": [
+      [
+        {
+          "field": "principal.roles",
+          "operator": "contains",
+          "value": "admin"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "deny-contractors-write",
+    "effect": "deny",
+    "description": "Contractors cannot write",
+    "priority": 20,
+    "actions": ["write"],
+    "match": [
+      [
+        {
+          "field": "principal.roles",
+          "operator": "contains",
+          "value": "contractor"
+        }
+      ]
+    ]
+  }
+]

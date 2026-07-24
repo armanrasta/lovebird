@@ -1,0 +1,32 @@
+[
+  {
+    "name": "admin-can-read",
+    "expected_effect": "allow",
+    "request": {
+      "principal": { "id": "alice", "roles": ["admin"], "attributes": {} },
+      "action": "read",
+      "resource": { "type": "doc", "id": "d1", "attributes": {} },
+      "context": {}
+    }
+  },
+  {
+    "name": "contractor-write-denied",
+    "expected_effect": "deny",
+    "request": {
+      "principal": { "id": "bob", "roles": ["contractor"], "attributes": {} },
+      "action": "write",
+      "resource": { "type": "doc", "id": "d1", "attributes": {} },
+      "context": {}
+    }
+  },
+  {
+    "name": "unknown-user-default-deny",
+    "expected_effect": "deny",
+    "request": {
+      "principal": { "id": "eve", "roles": ["guest"], "attributes": {} },
+      "action": "read",
+      "resource": { "type": "doc", "id": "d1", "attributes": {} },
+      "context": {}
+    }
+  }
+]
