@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/lovebird-banner.svg" alt="Lovebird" width="720"/>
+  <img src="docs/assets/lovebird-banner.png" alt="Lovebird" width="720"/>
 </p>
 
 <h1 align="center">Lovebird</h1>
