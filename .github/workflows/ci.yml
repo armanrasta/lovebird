@@ -132,8 +132,9 @@ jobs:
     steps:
       - name: Install build deps
         run: |
-          dnf -y install gcc make curl pkgconf-pkg-config git \
-            openssl-devel
+          # Image ships curl-minimal; full `curl` conflicts unless we allow erasing.
+          dnf -y install --allowerasing \
+            gcc make curl pkgconf-pkg-config git openssl-devel
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo fetch
