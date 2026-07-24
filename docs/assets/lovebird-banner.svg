@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200" role="img" aria-label="Lovebird">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1c1a"/>
+      <stop offset="100%" stop-color="#1a3330"/>
+    </linearGradient>
+    <linearGradient id="bird" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8a87c"/>
+      <stop offset="100%" stop-color="#85cdca"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="200" rx="16" fill="url(#bg)"/>
+  <circle cx="120" cy="100" r="54" fill="url(#bird)" opacity="0.95"/>
+  <path d="M95 105c18-28 52-28 70 0-20 8-48 8-70 0z" fill="#0f1c1a" opacity="0.35"/>
+  <circle cx="138" cy="88" r="5" fill="#0f1c1a"/>
+  <path d="M168 100l22-6-22-6v12z" fill="#e8a87c"/>
+  <text x="210" y="92" fill="#f4f7f6" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700">Lovebird</text>
+  <text x="212" y="128" fill="#9db5b0" font-family="ui-sans-serif, system-ui, sans-serif" font-size="18">offline-first security decisions</text>
+</svg>
