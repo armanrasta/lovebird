@@ -1,0 +1,9 @@
+[project]
+name = "lovebird"
+version = "0.1.0"
+description = "Minimal stdlib client for lovebird-server"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+include = ["lovebird"]
