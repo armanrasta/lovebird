@@ -1,0 +1,13 @@
+[package]
+name = "lovebird-session"
+version.workspace = true
+edition.workspace = true
+description = "Temporal / behavioral session tracking for Lovebird (Phase 1)"
+
+[dependencies]
+lovebird-common = { path = "../lovebird-common" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+lovebird-engine = { path = "../lovebird-engine" }

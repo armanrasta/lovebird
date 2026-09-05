@@ -1,0 +1,50 @@
+[
+  {
+    "id": "deny-high-anomaly",
+    "effect": "deny",
+    "description": "Deny when session anomaly score is elevated",
+    "priority": 50,
+    "actions": ["read", "write"],
+    "match": [
+      [
+        {
+          "field": "session.anomaly_score",
+          "operator": "greater_than",
+          "value": 0.7
+        }
+      ]
+    ]
+  },
+  {
+    "id": "deny-impossible-travel",
+    "effect": "deny",
+    "description": "Deny when impossible travel was detected",
+    "priority": 45,
+    "actions": ["read", "write"],
+    "match": [
+      [
+        {
+          "field": "session.impossible_travel_detected",
+          "operator": "equals",
+          "value": true
+        }
+      ]
+    ]
+  },
+  {
+    "id": "allow-authenticated-read",
+    "effect": "allow",
+    "description": "Allow normal reads",
+    "priority": 10,
+    "actions": ["read"],
+    "match": [
+      [
+        {
+          "field": "action",
+          "operator": "equals",
+          "value": "read"
+        }
+      ]
+    ]
+  }
+]

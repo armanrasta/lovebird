@@ -1,0 +1,44 @@
+[
+  {
+    "name": "calm-session-allows-read",
+    "expected_effect": "allow",
+    "request": {
+      "principal": { "id": "u1", "roles": ["user"] },
+      "action": "read",
+      "resource": { "type": "doc", "id": "d1" },
+      "context": {
+        "session.anomaly_score": 0.1,
+        "session.impossible_travel_detected": false,
+        "session.failed_auth_count": 0,
+        "session.request_count": 3,
+        "session.requests_last_minute": 1
+      }
+    }
+  },
+  {
+    "name": "high-anomaly-denies",
+    "expected_effect": "deny",
+    "request": {
+      "principal": { "id": "u1", "roles": ["user"] },
+      "action": "read",
+      "resource": { "type": "doc", "id": "d1" },
+      "context": {
+        "session.anomaly_score": 0.9,
+        "session.impossible_travel_detected": false
+      }
+    }
+  },
+  {
+    "name": "impossible-travel-denies",
+    "expected_effect": "deny",
+    "request": {
+      "principal": { "id": "u1", "roles": ["user"] },
+      "action": "read",
+      "resource": { "type": "doc", "id": "d1" },
+      "context": {
+        "session.anomaly_score": 0.2,
+        "session.impossible_travel_detected": true
+      }
+    }
+  }
+]

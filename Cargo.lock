@@ -296,6 +296,7 @@ dependencies = [
  "clap",
  "lovebird-common",
  "lovebird-engine",
+ "lovebird-graph",
  "serde",
  "serde_json",
 ]
@@ -330,6 +331,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lovebird-graph"
+version = "0.1.0"
+dependencies = [
+ "lovebird-common",
+ "lovebird-engine",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "lovebird-honeypot"
 version = "0.1.0"
 dependencies = [
@@ -342,6 +353,16 @@ version = "0.1.0"
 dependencies = [
  "lovebird-common",
  "lovebird-engine",
+]
+
+[[package]]
+name = "lovebird-session"
+version = "0.1.0"
+dependencies = [
+ "lovebird-common",
+ "lovebird-engine",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

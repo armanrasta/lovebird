@@ -24,6 +24,8 @@ echo "==> using $BIN"
 "$BIN" policy diff examples/policies/allow-admins.json examples/policies/allow-admins.json
 "$BIN" policy shadow-report examples/policies/allow-admins.json examples/policies/allow-admins.json --against examples/traffic/sample.jsonl
 
+"$BIN" policy test examples/policies/session-guards.json examples/scenarios/session.json
+
 MISSING="${TMPDIR:-/tmp}/does-not-exist-lovebird-$$.json"
 if "$BIN" policy validate "$MISSING"; then
   echo "expected validate of missing file to fail" >&2
