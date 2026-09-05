@@ -13,7 +13,7 @@ Harsh gates run on every push/PR. Failures are intentional — fix the code, do 
 | `test-centos` | **CentOS Stream 9** container | build + test + stress |
 | `docs` | Ubuntu | `cargo doc -D warnings` |
 | `audit` | Ubuntu | `cargo audit --deny warnings` |
-| `cli-smoke` | Ubuntu, macOS, Windows | full CLI surface via `scripts/ci-cli-smoke.sh` |
+| `cli-smoke` | Ubuntu, macOS, Windows | full CLI surface via `scripts/ci-cli-smoke.sh`; Unix also builds `lovebird-server` and runs `scripts/ci-server-smoke.sh` |
 
 ### Distro notes
 
@@ -37,6 +37,7 @@ cargo clippy --workspace --lib --bins -- -D warnings -D clippy::unwrap_used
 cargo test --workspace
 cargo test -p lovebird-engine stress_
 bash scripts/ci-cli-smoke.sh
+bash scripts/ci-server-smoke.sh
 ```
 
-See also [`SYSTEM.md`](SYSTEM.md) for architecture and [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) for dependency rules.
+See also [`SYSTEM.md`](SYSTEM.md) for architecture, [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) for dependency rules, and [`THREAT-MODEL.md`](THREAT-MODEL.md) for the evaluate sidecar.

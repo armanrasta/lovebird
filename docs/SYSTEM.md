@@ -1,6 +1,6 @@
 # Lovebird system overview
 
-This document describes how the Lovebird system is structured today, what runs where, and how pieces talk to each other. For product vision and roadmap see [`PROJECT.md`](PROJECT.md). For dependency policy see [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md). For CI hosts see [`CI.md`](CI.md).
+This document describes how the Lovebird system is structured today, what runs where, and how pieces talk to each other. For product vision and roadmap see [`PROJECT.md`](PROJECT.md). For dependency policy see [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md). For CI hosts see [`CI.md`](CI.md). Evaluate-sidecar threats: [`THREAT-MODEL.md`](THREAT-MODEL.md).
 
 ---
 
@@ -15,7 +15,7 @@ Your app / CLI / server
    lovebird-engine   ← pure evaluate(Request, [Policy]) → Decision
         ▲
         │ context injected at call time
- session / graph / identity / CT / honeypot   (mostly not built yet)
+ session / graph (built) · identity / CT / honeypot (not built)
 ```
 
 ---
@@ -24,9 +24,9 @@ Your app / CLI / server
 
 | Layer | Role | Crates today |
 |---|---|---|
-| **4 — Interfaces** | Humans & foreign languages talk here | `lovebird-cli` ✅ · `lovebird-server` stub · Python SDK planned (#32) |
+| **4 — Interfaces** | Humans & foreign languages talk here | `lovebird-cli` ✅ · `lovebird-server` evaluate API ✅ · Python client v0 (`clients/python`) |
 | **3 — Decision engine** | Pure allow/deny + explain + sign | `lovebird-engine` ✅ |
-| **2 — Signal collectors** | Build `session.*` / `graph.*` / identity / deception facts | `lovebird-ct` / `honeypot` stubs · session/graph/identity ❌ |
+| **2 — Signal collectors** | Build `session.*` / `graph.*` / identity / deception facts | `lovebird-session` ✅ · `lovebird-graph` ✅ · `lovebird-ct` / `honeypot` stubs · identity ❌ |
 | **1 — Foundation** | Shared types, errors, audit shape | `lovebird-common` ✅ |
 
 **Hard rule:** Layer 3 has no network I/O and no wall-clock reads. “Now”, geo, JWKS, CT results, etc. arrive inside `Request.context` (or namespaced `session.*` / `graph.*` keys).
@@ -40,13 +40,16 @@ lovebird/
 ├── crates/
 │   ├── lovebird-common/     # types: Request, Policy, Decision, AuditEntry, …
 │   ├── lovebird-engine/     # evaluator, operators, validation, linter, impact, signer
+│   ├── lovebird-session/    # store, BehaviorAnalyzer, session.* extractor
+│   ├── lovebird-graph/      # builder, blast radius, attack paths, graph.* extractor
 │   ├── lovebird-ct/         # CT monitor (scaffold)
 │   └── lovebird-honeypot/   # deception server (scaffold)
 ├── lovebird-cli/            # offline operator binary (`lovebird`)
-├── lovebird-server/         # HTTP/gRPC binary (stub — not serving yet)
-├── examples/                # policies, scenarios, traffic JSONL
-├── scripts/ci-cli-smoke.sh  # cross-OS CLI gate
-└── docs/                    # PROJECT, SYSTEM, CI, SUPPLY-CHAIN
+├── lovebird-server/         # evaluate sidecar (no authn)
+├── clients/python/          # stdlib LovebirdClient
+├── examples/                # policies, scenarios, traffic JSONL, graphs
+├── scripts/                 # ci-cli-smoke.sh, ci-server-smoke.sh
+└── docs/                    # PROJECT, SYSTEM, CI, SUPPLY-CHAIN, PERF, THREAT-MODEL
 ```
 
 ---
@@ -73,14 +76,28 @@ App builds Request { principal, action, resource, context }
 | `policy diff` | Structural policy diff (+ optional impact) |
 | `policy shadow-report` | Production vs shadow agreement % |
 | `audit verify` | Verify Ed25519 `AuditEntry` |
+| `graph load\|blast-radius\|attack-paths\|crown-jewels` | Offline graph queries |
 
-### 4.3 Server / multi-language — planned
+### 4.3 Server / multi-language — evaluate API works
 
 ```
-Java / Python / Go  --HTTP/gRPC-->  lovebird-server  -->  lovebird-engine
+Java / Python / Go  --HTTP-->  lovebird-server  -->  lovebird-engine
 ```
 
-Same JSON `Request` / `Decision` shapes. Python client tracked in issue #32. Server must expose at least `POST /api/v1/authz/evaluate` before foreign SDKs are useful live.
+Same JSON `Request` / `Decision` shapes. Sidecar:
+
+```bash
+cargo run -p lovebird-server -- --policies examples/policies/allow-admins.json --bind 127.0.0.1:8080
+```
+
+| Endpoint | Behavior |
+|---|---|
+| `GET /health` | liveness |
+| `POST /api/v1/authz/evaluate` | one `Request` → `Decision` |
+| `POST /api/v1/authz/evaluate/batch` | array of requests → array of decisions |
+| `GET /api/v1/policies` | loaded policy ids (no secrets) |
+
+Caller supplies `session.*` / `graph.*` in `Request.context`. No authn — loopback only ([`THREAT-MODEL.md`](THREAT-MODEL.md)). Python: [`clients/python/README.md`](../clients/python/README.md). Native bindings still optional (#32).
 
 ---
 
@@ -113,7 +130,7 @@ Placeholders: `{{principal.id}}` whole-string keeps JSON type; embedded in a lar
 | Ed25519 `DecisionSigner` / `AuditEntry` | ✅ |
 | crates.io pins + `docs/SUPPLY-CHAIN.md` | ✅ |
 | Offline `cargo build` after fetch | ✅ |
-| Threat model for server/honeypot | ❌ (#18) |
+| Threat model for evaluate sidecar | ✅ [`THREAT-MODEL.md`](THREAT-MODEL.md) (#18 remainder: identity/honeypot) |
 
 **Strict intent:** a production audit trail should be a signed `AuditEntry`, not a log line.
 
@@ -124,7 +141,7 @@ Placeholders: `{{principal.id}}` whole-string keeps JSON type; embedded in a lar
 | Model | Shape | Status |
 |---|---|---|
 | Embedded library | `use lovebird_engine::…` in-process | ✅ Rust |
-| Sidecar | `lovebird-server` on localhost | ❌ stub |
+| Sidecar | `lovebird-server` on localhost | ✅ evaluate API |
 | Gateway | Perimeter evaluate | ❌ |
 | Federated fabric | Multi-node policy sync | ❌ Phase 5 |
 
@@ -158,6 +175,7 @@ cargo fmt --all -- --check
 cargo clippy --workspace --lib --bins -- -D warnings -D clippy::unwrap_used
 cargo test --workspace
 bash scripts/ci-cli-smoke.sh
+bash scripts/ci-server-smoke.sh
 ```
 
 ---
@@ -167,4 +185,6 @@ bash scripts/ci-cli-smoke.sh
 - [`PROJECT.md`](PROJECT.md) — vision, phases, requirements, open questions  
 - [`CI.md`](CI.md) — multi-OS CI matrix and local equivalents  
 - [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) — dependency pinning rules  
-- GitHub issues — remaining Phase 0+ work (#18 threat model, #19 perf, #21 fuzz CLI, #32 Python, …)
+- [`PERF.md`](PERF.md) — `evaluate()` envelope targets  
+- [`THREAT-MODEL.md`](THREAT-MODEL.md) — evaluate sidecar  
+- GitHub issues — remaining work (#18 identity/honeypot threat model, #19 microbench, #21 fuzz CLI, #32 native bindings, …)

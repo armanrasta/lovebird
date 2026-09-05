@@ -1,7 +1,7 @@
 # Lovebird — Project Documentation
 
-**Version:** 0.1.0 (Phase 0 — Foundation)
-**Status:** Phase 0 core path largely in place: engine + Explain Mode + DecisionSigner (Ed25519) + offline CLI (`policy validate`/`test`, `audit verify`) + crates.io pins + CI. Still missing: session/graph/identity/honeypot/server implementations, fuzz corpus, dry-run/shadow/linter polish.
+**Version:** 0.1.0 (Phases 0–2 underway)
+**Status:** Phases 0–2 plus evaluate sidecar. Engine + session + graph + CLI + `lovebird-server` (`POST /api/v1/authz/evaluate`) + stdlib Python client. Still missing: identity/honeypot, fuzz (#21), identity/honeypot threat model (#18 remainder).
 **Document purpose:** Single source of truth for what Lovebird is, why it exists, what it needs, what exists today, what's missing, and how it gets built out.
 
 ---
@@ -23,7 +23,7 @@
 13. [Governance / Definition of Done](#13-governance--definition-of-done)
 14. [Open Questions](#14-open-questions)
 
-**Also see:** [`SYSTEM.md`](SYSTEM.md) (how the system fits together), [`CI.md`](CI.md) (multi-OS gates), [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) (dependency pins).
+**Also see:** [`SYSTEM.md`](SYSTEM.md) (how the system fits together), [`CI.md`](CI.md) (multi-OS gates), [`SUPPLY-CHAIN.md`](SUPPLY-CHAIN.md) (dependency pins), [`PERF.md`](PERF.md) (evaluate envelope), [`THREAT-MODEL.md`](THREAT-MODEL.md) (evaluate sidecar).
 
 ---
 
@@ -186,10 +186,10 @@ No logic, no network, no side effects. Types: `Request`, `Principal`, `Resource`
 Modules: `resolver` (done), `evaluator` (stub only), `operators` (not present), `validation` (stub only), `signer` (not present), `audit` (not present). Pure, synchronous, deterministic — the one crate every deployment model shares unchanged.
 
 ### `lovebird-graph` — relationships
-`builder`, `graph` (add/query nodes+edges, reachability, shortest path), `blast_radius` (reachable/sensitive/crown-jewel scoring), `attack_paths` (ranked path discovery), `context_extractor` (packages graph facts as `graph.*` fields for the evaluator). **Not yet in the workspace.**
+`builder`, `graph` (add/query nodes+edges, reachability, shortest path), `blast_radius` (reachable/sensitive/crown-jewel scoring), `attack_paths` (ranked path discovery), `context_extractor` (packages graph facts as `graph.*` fields for the evaluator). **Implemented.** CLI: `graph load|blast-radius|attack-paths|crown-jewels`.
 
 ### `lovebird-session` — memory
-`store` (concurrent in-memory session store), `analyzer` (anomaly scoring, impossible-travel detection, MFA-fatigue detection, velocity-spike detection, credential-stuffing detection), `context_extractor` (packages as `session.*` fields). **Not yet in the workspace.**
+`store` (concurrent in-memory session store), `analyzer` (anomaly scoring, impossible-travel detection, MFA-fatigue detection, velocity-spike detection, credential-stuffing detection), `context_extractor` (packages as `session.*` fields including `session.requests_last_minute`). **Implemented.** Rate-limit signal (#26) is this field.
 
 ### `lovebird-identity` — trust verification
 `jwt` (HMAC/RS256/ES256 verification, claims → `Principal`), `oidc` (JWKS caching/refresh), `enricher` (claim → attribute mapping). **Not yet in the workspace.**
@@ -204,9 +204,9 @@ Modules: `resolver` (done), `evaluator` (stub only), `operators` (not present), 
 `config`, `policy_sync` (push/pull/merge with priority-wins conflict resolution + provenance), `alert_aggregator`, `federated_query` (`who_accessed`, `where_is`, cross-node blast radius). **Not yet in the workspace. Phase 5 — lowest priority.**
 
 ### `lovebird-server` — the binary
-`config` (loads `lovebird.json`, wires every optional module), `startup` (fail-fast validation before binding any port), `api` (REST surface listed below), `grpc` (streaming-capable equivalent), `state` (`AppState` holding `Arc`s to evaluator/graph/session/token-store/audit-log). **Scaffolded; only wiring, no implementation.**
+v0 evaluate sidecar: fail-fast policy load/validate before bind (`--policies`, `--bind`, `--explain`). No `lovebird.json` yet. Context enrichment stays caller-side.
 
-REST surface (target):
+REST surface (v0 shipped / later target):
 ```
 POST   /api/v1/authz/evaluate
 POST   /api/v1/authz/evaluate/batch
@@ -224,7 +224,7 @@ GET    /admin
 ```
 
 ### `lovebird-cli` — operator tool
-`policy validate|test|list`, `graph load|blast-radius|attack-paths|crown-jewels`, `audit verify|inspect`, `simulate <scenario>` (regression testing for policy changes), `config validate`, `honeypot generate-token`, `version`. **Not yet in the workspace.**
+`policy validate|lint|test|dry-run|diff|shadow-report`, `graph load|blast-radius|attack-paths|crown-jewels`, `audit verify`. Still planned: `inspect`, `simulate`, `config validate`, honeypot helpers.
 
 ---
 
@@ -238,14 +238,14 @@ What actually exists today, cross-referenced against the spec above:
 | `lovebird-engine` | ✅ | Compiles and has tests. `resolver` (field + placeholders, including `session.*`/`graph.*` via context), `operators` (all 13), `evaluator` (deny-overrides + Explain Mode), `validation` (collect-all errors, regex checked at validate time). |
 | `lovebird-ct` | ✅ | Cargo.toml + empty `lib.rs`/stub `main.rs` only. No `config`/`monitor`/`similarity`/etc. modules. |
 | `lovebird-honeypot` | ✅ | Same as above — Cargo.toml + stub only. |
-| `lovebird-server` | ✅ | Cargo.toml + stub `main.rs` printing `"Hello, world!"`. No config loading, no API, no wiring. |
-| `lovebird-graph` | ❌ | Not created. |
-| `lovebird-session` | ❌ | Not created. |
+| `lovebird-server` | ✅ | Evaluate sidecar (v0): load/validate policies at startup, `GET /health`, `POST /api/v1/authz/evaluate` (+ batch), `GET /api/v1/policies`. No authn, identity, or graph/session HTTP yet. |
+| `lovebird-graph` | ✅ | In-memory graph, blast radius, attack paths, `graph.*` extractor, CLI `graph` commands, fixture at `examples/graphs/fixture.json`. |
+| `lovebird-session` | ✅ | Store + deterministic `BehaviorAnalyzer` + `session.*` extractor (includes `session.requests_last_minute`, #26). |
 | `lovebird-identity` | ❌ | Not created. |
 | `lovebird-federation` | ❌ | Not created. |
-| `lovebird-cli` | ❌ | Not created. |
+| `lovebird-cli` | ✅ | `policy validate\|lint\|test\|dry-run\|diff\|shadow-report`, `audit verify`, `graph load\|blast-radius\|attack-paths\|crown-jewels`. |
 
-**Net assessment:** Phase 0 core engine path is underway. `lovebird-common` + `lovebird-engine` compile with a unit test suite. Remaining Phase 0 work: supply-chain pinning, CLI (`policy validate`/`test`), fuzz/property tests, DecisionSigner/audit, and threat model before Phase 3/4.
+**Net assessment:** Phases 0–2 core path is in place (engine, session, graph, CLI). Remaining: fuzz/chaos (#21), evaluate-sidecar threat model (#18 slice), checked-in microbench (#19), identity (Phase 3), honeypot/CT (Phase 4).
 
 ---
 
@@ -258,10 +258,8 @@ What actually exists today, cross-referenced against the spec above:
 - ~~Types owned by engine~~ — relocated to `lovebird-common`; engine re-exports.
 
 ### 8.1b Remaining Phase 0 gaps
-- Supply-chain pinning still uses floating git branches (see §8.2).
-- No CLI yet (`lovebird-cli`).
-- No DecisionSigner / signed AuditEntry yet (FR5).
-- Fuzz/property coverage incomplete (NFR6).
+- Fuzz/chaos harness incomplete (NFR6, #21).
+- Checked-in microbench for `evaluate()` still open (#19); targets live in [`PERF.md`](PERF.md).
 
 ### 8.2 Supply-chain / "Build Guarantee" contradiction
 The blueprint promises: *"Every dependency is pinned to a specific Git commit … the build never touches a package registry … the full dependency tree is auditable to source code."* The current `Cargo.toml`/`Cargo.lock` instead point `serde`, `serde_json`, `tokio`, `proc-macro2`, `quote`, `syn`, `unicode-ident`, `anyhow`, `pin-project-lite` at **`branch = "master"`** of their upstream repos (not even a pinned commit — `Cargo.lock` does capture a specific commit hash today, but the *manifest* itself tracks a moving branch, so the next `cargo update` silently pulls unreviewed, unreleased upstream code). For the Defense/Gov persona this directly undermines the pitch. **Recommendation:** pin to tagged releases (or vendor via `cargo vendor`), and reserve git-branch dependencies for cases with a documented, reviewed reason.
@@ -348,14 +346,15 @@ All four share the same policy language and audit log format — a policy author
 
 **Done (this slice):** crates.io pins (`docs/SUPPLY-CHAIN.md`); `DecisionSigner` + `audit verify`; `lovebird-cli` (`policy validate`/`test`); CI offline gate; clippy deny unwrap/expect; policy language version field; launch persona = Embedded Engineer; confidence-score + multi-tenancy deferred.
 
-**Remaining toward a real Phase 0 exit / Phase 1 start:**
+**Remaining toward Phase 0 polish / Phase 3:**
 
-1. Expand tests: per-operator units + property/fuzz (`#11`, `#21`).
-2. Policy dry-run / diff / linter / shadow (`#20`–`#24`).
-3. Threat model before Phase 3/4 (`#18`).
-4. Performance envelope before Phase 2 (`#19`).
-5. Implement `lovebird-session` then `lovebird-graph` (Phases 1–2).
+1. Chaos/fuzz harness (`#21`).
+2. Threat model remainder for identity / honeypot (`#18`). Evaluate sidecar is in [`THREAT-MODEL.md`](THREAT-MODEL.md).
+3. Checked-in microbench for `#19` (targets in [`PERF.md`](PERF.md)).
+4. Optional PyO3 bindings (`#32`); HTTP client is in `clients/python`.
+5. Implement `lovebird-identity` (Phase 3).
 
+**Done (Phases 1–2 + evaluate API):** `lovebird-session` (including `session.requests_last_minute`, #26); `lovebird-graph`; CLI `graph`; `lovebird-server` evaluate sidecar; stdlib Python client.
 ---
 
 ## 13. Governance / Definition of Done
@@ -384,7 +383,7 @@ If the answer to all five is no, it does not belong in Lovebird.
 These need answers before the corresponding phase starts — flagged rather than guessed at:
 
 1. What's the compliance target (if any) for the Defense/Gov persona — FedRAMP, Common Criteria, something else — and does that change any architectural decision made now? *(Templates `#25` are the non-product answer for now.)*
-2. What are the concrete performance targets (`evaluate()` p99 latency, max supported policy count, memory ceiling) for the embedded deployment model? *(Blocked on `#19`.)*
+2. What are the concrete performance targets (`evaluate()` p99 latency, max supported policy count, memory ceiling) for the embedded deployment model? *(Targets published in [`PERF.md`](PERF.md); #19 remains open until a checked-in microbench.)*
 3. ~~Policy language versioning~~ — **decided:** `policy_language_version` on `Policy` (default `"1"`); major mismatch fails validation; additive operators are minor-compatible.
 4. ~~Signing scheme~~ — **decided: Ed25519** (`DecisionSigner` in `lovebird-engine::signer`).
 5. Federation trust model: how do peer nodes authenticate to each other, and what happens on policy merge conflicts beyond "higher priority wins" — is there a human-in-the-loop path for genuinely ambiguous merges?
