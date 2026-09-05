@@ -185,3 +185,8 @@ jobs:
       - run: cargo build -p lovebird-cli --offline
       - name: Full CLI surface
         run: bash scripts/ci-cli-smoke.sh
+      - name: Build evaluate sidecar
+        run: cargo build -p lovebird-server --offline
+      - name: Server + Python smoke (Unix)
+        if: runner.os != 'Windows'
+        run: bash scripts/ci-server-smoke.sh

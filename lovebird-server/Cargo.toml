@@ -2,7 +2,22 @@
 name = "lovebird-server"
 version.workspace = true
 edition.workspace = true
+description = "Localhost evaluate sidecar for Lovebird"
+
+[[bin]]
+name = "lovebird-server"
+path = "src/main.rs"
 
 [dependencies]
 lovebird-common = { path = "../crates/lovebird-common" }
 lovebird-engine = { path = "../crates/lovebird-engine" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+
+[dev-dependencies]
+tower = { workspace = true }
+http-body-util = { workspace = true }

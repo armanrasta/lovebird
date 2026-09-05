@@ -20,5 +20,7 @@ None. All workspace dependencies are crates.io version pins.
 | `serde` / `serde_json` | Policy/request serialization |
 | `regex` | `Regex` operator + validation |
 | `ed25519-dalek` / `rand` / `sha2` / `hex` | DecisionSigner / AuditEntry (FR5) |
-| `clap` | `lovebird-cli` |
-| `anyhow` | CLI error reporting only (not in engine) |
+| `clap` | `lovebird-cli` / `lovebird-server` |
+| `anyhow` | CLI / server startup errors only (not in engine) |
+| `tokio` / `axum` | `lovebird-server` evaluate sidecar (HTTP only; engine stays sync) |
+| `tower` / `http-body-util` | Server tests (`oneshot` / body collect) |
