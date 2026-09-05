@@ -14,3 +14,4 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 lovebird-common = { path = "../crates/lovebird-common" }
 lovebird-engine = { path = "../crates/lovebird-engine" }
+lovebird-graph = { path = "../crates/lovebird-graph" }

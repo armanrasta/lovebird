@@ -1,0 +1,30 @@
+[
+  {
+    "name": "no-reach-allows",
+    "expected_effect": "allow",
+    "request": {
+      "principal": { "id": "bob", "roles": [] },
+      "action": "read",
+      "resource": { "type": "database", "id": "payroll-db" },
+      "context": {
+        "graph.blast_radius_score": 0.0,
+        "graph.crown_jewel_reachable": false,
+        "graph.resource_sensitivity": 95
+      }
+    }
+  },
+  {
+    "name": "crown-jewel-reach-denies",
+    "expected_effect": "deny",
+    "request": {
+      "principal": { "id": "alice", "roles": [] },
+      "action": "read",
+      "resource": { "type": "database", "id": "payroll-db" },
+      "context": {
+        "graph.blast_radius_score": 0.56625,
+        "graph.crown_jewel_reachable": true,
+        "graph.resource_sensitivity": 95
+      }
+    }
+  }
+]

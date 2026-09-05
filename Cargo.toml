@@ -3,6 +3,7 @@ members = [
     "crates/lovebird-common",
     "crates/lovebird-engine",
     "crates/lovebird-session",
+    "crates/lovebird-graph",
     "crates/lovebird-ct",
     "crates/lovebird-honeypot",
     "lovebird-server",

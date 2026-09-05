@@ -1,0 +1,13 @@
+[package]
+name = "lovebird-graph"
+version.workspace = true
+edition.workspace = true
+description = "Asset relationship graph for Lovebird (Phase 2)"
+
+[dependencies]
+lovebird-common = { path = "../lovebird-common" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+lovebird-engine = { path = "../lovebird-engine" }

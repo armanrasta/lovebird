@@ -11,6 +11,7 @@ use lovebird_engine::{
     AuditEntry, DecisionSigner, Effect, Evaluator, LintSeverity, Policy, Request, TrafficRecord,
     diff_policies, dry_run, lint_policies, validate_policies,
 };
+use lovebird_graph::{compute_blast_radius, find_attack_paths, load_graph_json};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -31,6 +32,10 @@ enum Commands {
     Audit {
         #[command(subcommand)]
         command: AuditCmd,
+    },
+    Graph {
+        #[command(subcommand)]
+        command: GraphCmd,
     },
 }
 
@@ -85,6 +90,30 @@ enum AuditCmd {
     Verify { file: PathBuf },
 }
 
+#[derive(Subcommand)]
+enum GraphCmd {
+    /// Load and summarize a graph JSON file
+    Load { file: PathBuf },
+    /// Compute blast radius from a principal/node id
+    BlastRadius {
+        file: PathBuf,
+        #[arg(long = "from")]
+        from: String,
+    },
+    /// Find ranked attack paths between two nodes
+    AttackPaths {
+        file: PathBuf,
+        #[arg(long = "from")]
+        from: String,
+        #[arg(long = "to")]
+        to: String,
+        #[arg(long, default_value_t = 5)]
+        limit: usize,
+    },
+    /// List crown-jewel nodes
+    CrownJewels { file: PathBuf },
+}
+
 #[derive(serde::Deserialize)]
 struct Scenario {
     request: Request,
@@ -124,6 +153,14 @@ fn run() -> Result<ExitCode> {
         },
         Commands::Audit { command } => match command {
             AuditCmd::Verify { file } => cmd_audit_verify(&file),
+        },
+        Commands::Graph { command } => match command {
+            GraphCmd::Load { file } => cmd_graph_load(&file),
+            GraphCmd::BlastRadius { file, from } => cmd_graph_blast_radius(&file, &from),
+            GraphCmd::AttackPaths { file, from, to, limit } => {
+                cmd_graph_attack_paths(&file, &from, &to, limit)
+            }
+            GraphCmd::CrownJewels { file } => cmd_graph_crown_jewels(&file),
         },
     }
 }
@@ -410,4 +447,59 @@ fn cmd_audit_verify(path: &Path) -> Result<ExitCode> {
         println!("DONE — {ok} ok, {bad} failed");
         Ok(ExitCode::FAILURE)
     }
+}
+
+fn load_graph_file(path: &Path) -> Result<lovebird_graph::AssetGraph> {
+    let raw = fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+    load_graph_json(&raw).map_err(|e| anyhow::anyhow!("{e}"))
+}
+
+fn cmd_graph_load(path: &Path) -> Result<ExitCode> {
+    let g = load_graph_file(path)?;
+    let nodes = g.nodes().count();
+    let edges = g.edges().count();
+    let jewels = g.crown_jewels().len();
+    println!("OK — nodes={nodes} edges={edges} crown_jewels={jewels}");
+    Ok(ExitCode::SUCCESS)
+}
+
+fn cmd_graph_blast_radius(path: &Path, from: &str) -> Result<ExitCode> {
+    let g = load_graph_file(path)?;
+    let br = compute_blast_radius(&g, from);
+    println!("from:                 {}", br.from);
+    println!("reachable_count:      {}", br.reachable_count);
+    println!("max_sensitivity:      {}", br.max_sensitivity);
+    println!("crown_jewel_reachable:{}", br.crown_jewel_reachable);
+    println!("blast_radius_score:   {:.5}", br.blast_radius_score);
+    if !br.reachable_ids.is_empty() {
+        println!("reachable:            {}", br.reachable_ids.join(", "));
+    }
+    Ok(ExitCode::SUCCESS)
+}
+
+fn cmd_graph_attack_paths(path: &Path, from: &str, to: &str, limit: usize) -> Result<ExitCode> {
+    let g = load_graph_file(path)?;
+    let paths = find_attack_paths(&g, from, to, limit);
+    if paths.is_empty() {
+        println!("OK — no paths from {from} to {to}");
+        return Ok(ExitCode::SUCCESS);
+    }
+    for (i, p) in paths.iter().enumerate() {
+        println!("[{i}] severity={} hops={}", p.severity, p.hops.join(" -> "));
+    }
+    println!("DONE — {} path(s)", paths.len());
+    Ok(ExitCode::SUCCESS)
+}
+
+fn cmd_graph_crown_jewels(path: &Path) -> Result<ExitCode> {
+    let g = load_graph_file(path)?;
+    let jewels = g.crown_jewels();
+    if jewels.is_empty() {
+        println!("OK — no crown jewels");
+    } else {
+        for n in jewels {
+            println!("{}  sensitivity={}  type={:?}", n.id, n.sensitivity, n.r#type);
+        }
+    }
+    Ok(ExitCode::SUCCESS)
 }

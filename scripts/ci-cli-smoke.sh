@@ -25,6 +25,11 @@ echo "==> using $BIN"
 "$BIN" policy shadow-report examples/policies/allow-admins.json examples/policies/allow-admins.json --against examples/traffic/sample.jsonl
 
 "$BIN" policy test examples/policies/session-guards.json examples/scenarios/session.json
+"$BIN" policy test examples/policies/graph-guards.json examples/scenarios/graph.json
+"$BIN" graph load examples/graphs/fixture.json
+"$BIN" graph blast-radius examples/graphs/fixture.json --from alice
+"$BIN" graph attack-paths examples/graphs/fixture.json --from alice --to payroll-db
+"$BIN" graph crown-jewels examples/graphs/fixture.json
 
 MISSING="${TMPDIR:-/tmp}/does-not-exist-lovebird-$$.json"
 if "$BIN" policy validate "$MISSING"; then

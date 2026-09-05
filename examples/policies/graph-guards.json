@@ -1,0 +1,50 @@
+[
+  {
+    "id": "deny-crown-jewel-reach",
+    "effect": "deny",
+    "description": "Deny when the principal can reach a crown jewel",
+    "priority": 40,
+    "actions": ["read", "write"],
+    "match": [
+      [
+        {
+          "field": "graph.crown_jewel_reachable",
+          "operator": "equals",
+          "value": true
+        }
+      ]
+    ]
+  },
+  {
+    "id": "deny-high-blast-radius",
+    "effect": "deny",
+    "description": "Deny when blast radius score is high",
+    "priority": 35,
+    "actions": ["write"],
+    "match": [
+      [
+        {
+          "field": "graph.blast_radius_score",
+          "operator": "greater_than",
+          "value": 0.5
+        }
+      ]
+    ]
+  },
+  {
+    "id": "allow-read",
+    "effect": "allow",
+    "description": "Allow ordinary reads",
+    "priority": 5,
+    "actions": ["read"],
+    "match": [
+      [
+        {
+          "field": "action",
+          "operator": "equals",
+          "value": "read"
+        }
+      ]
+    ]
+  }
+]

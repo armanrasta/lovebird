@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "id": "alice",
+      "type": "user",
+      "sensitivity": 10,
+      "crown_jewel": false
+    },
+    {
+      "id": "jump-host",
+      "type": "host",
+      "sensitivity": 40,
+      "crown_jewel": false
+    },
+    {
+      "id": "payroll-db",
+      "type": "database",
+      "sensitivity": 95,
+      "crown_jewel": true
+    },
+    {
+      "id": "bob",
+      "type": "user",
+      "sensitivity": 5,
+      "crown_jewel": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "alice",
+      "to": "jump-host",
+      "relationship": "can_access"
+    },
+    {
+      "from": "jump-host",
+      "to": "payroll-db",
+      "relationship": "can_access"
+    }
+  ]
+}
